@@ -24,6 +24,11 @@ router.get('/tasks', auth, async (req, res) => {
     const tasks = await Task.find({
       owner: req.user._id,
       completed: req.query.completed ? req.query.completed === 'true' : [true, false]
+    },
+    null,
+    {
+      limit: parseInt(req.query.limit),
+      skip: parseInt(req.query.skip)
     })
     res.send(tasks)
   } catch (e) {
