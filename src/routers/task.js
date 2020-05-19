@@ -19,7 +19,16 @@ router.post('/tasks', auth, async (req, res) => {
 })
 
 // Read tasks
+// GET /tasks?completed=true
+// GET /tasks?limit=10&skip=10
+// GET /tasks?sortBy=createAt:desc
 router.get('/tasks', auth, async (req, res) => {
+  const sort = {}
+
+  if (req.query.sortBy) {
+    const parts = req.query.sortBy.split(':')
+    sort[parts[0]] = parts[1] === 'desc' ? -1 : 1
+  }
   try {
     const tasks = await Task.find({
       owner: req.user._id,
@@ -28,7 +37,8 @@ router.get('/tasks', auth, async (req, res) => {
     null,
     {
       limit: parseInt(req.query.limit),
-      skip: parseInt(req.query.skip)
+      skip: parseInt(req.query.skip),
+      sort
     })
     res.send(tasks)
   } catch (e) {
