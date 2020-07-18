@@ -4,6 +4,7 @@ const User = require('../models/user')
 const auth = require('../middleware/auth')
 const upload = require('../middleware/upload')
 const { sendWelcomeEmail, sendCancelationEmail } = require('../emails/account')
+const e = require('express')
 const router = new express.Router()
 
 // Create user
@@ -14,8 +15,10 @@ router.post('/users', async (req, res) => {
     await user.save()
     sendWelcomeEmail(user.email, user.name)
     res.status(201).send({ user })
-  } catch (e) {
-    res.status(400).send(e)
+  } catch (error) {
+    if (error.code === 11000)
+      res.status(400).send({ error: 'User already exist!'})
+    res.status(400).send({ error })
   }
 })
 
