@@ -1,6 +1,11 @@
 const mongoose = require('mongoose')
 
 const taskSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    required: true,
+    trim: true,
+  },
   description: {
     type: String,
     required: true,
@@ -14,6 +19,14 @@ const taskSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     required: true,
     ref: 'User'
+  },
+  state: {
+    type: String,
+    enum: ['todo', 'inprogress', 'done'],
+    default: 'todo',
+  },
+  comments: {
+    type: Array,
   }
 }, {
   timestamps: true

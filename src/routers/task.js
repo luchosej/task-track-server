@@ -1,6 +1,7 @@
 const express = require('express')
 const Task = require('../models/task')
 const auth = require('../middleware/auth')
+const { ObjectID } = require('mongodb')
 const router = new express.Router()
 
 // Create task
@@ -62,8 +63,11 @@ router.get('/tasks/:id', auth, async (req, res) => {
 // Update task
 router.patch('/tasks/:id', auth, async (req, res) => {
   const updates = Object.keys(req.body)
-  const allowedUpdates = ['description', 'completed']
-  const isValidOperation = updates.every((update) => allowedUpdates.includes(update))
+  const allowedUpdates = ['title', 'description', 'completed', 'state']
+  
+  const isValidOperation = updates.every((update) => {
+    return allowedUpdates.includes(update)
+  })
 
   if (!isValidOperation) {
       return res.status(400).send({ error: 'Invalid updates!'})
@@ -91,6 +95,41 @@ router.delete('/tasks/:id', auth, async (req, res) => {
 
     if (!task)
       return res.status(404).send()
+    res.send(task)
+  } catch (e) {
+    res.status(500).send()
+  }
+})
+
+// Add task comment
+router.post('/tasks/:id/comments', auth, async (req, res) => {
+  try {
+    const task = await Task.findOne({ _id: req.params.id })
+    const { body: { comment, from } } = req
+
+    if (!task)
+    return res.status(404).send()
+
+    task.comments.push({ comment, from, id: new ObjectID() })
+    await task.save()
+    res.send(task)
+  } catch (e) {
+    res.status(500).send()
+  }
+})
+
+router.delete('/tasks/:id/comments/:commentId', auth, async (req, res) => {
+  try {
+    const task = await Task.findOne({ _id: req.params.id })
+
+    if (!task)
+    return res.status(404).send()
+
+    console.log(req.params.commentId)
+    const filteredComments = task.comments.filter(comment => comment.id.toHexString() !== req.params.commentId)
+    task.comments = filteredComments
+    console.log(task.comments, filteredComments)
+    await task.save()
     res.send(task)
   } catch (e) {
     res.status(500).send()
