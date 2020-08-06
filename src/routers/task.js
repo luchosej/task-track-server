@@ -1,4 +1,5 @@
 const express = require('express')
+const jwt = require('jsonwebtoken')
 const Task = require('../models/task')
 const auth = require('../middleware/auth')
 const { ObjectID } = require('mongodb')
@@ -105,12 +106,18 @@ router.delete('/tasks/:id', auth, async (req, res) => {
 router.post('/tasks/:id/comments', auth, async (req, res) => {
   try {
     const task = await Task.findOne({ _id: req.params.id })
-    const { body: { comment, from } } = req
-
+    const { body: { comment } } = req
+    
     if (!task)
     return res.status(404).send()
-
-    task.comments.push({ comment, from, id: new ObjectID() })
+    
+    const from = jwt.decode(req.token)
+    task.comments.push({
+      comment,
+      from,
+      id: new ObjectID(),
+      createdAt: new Date()
+    })
     await task.save()
     res.send(task)
   } catch (e) {
@@ -123,12 +130,10 @@ router.delete('/tasks/:id/comments/:commentId', auth, async (req, res) => {
     const task = await Task.findOne({ _id: req.params.id })
 
     if (!task)
-    return res.status(404).send()
+      return res.status(404).send()
 
-    console.log(req.params.commentId)
     const filteredComments = task.comments.filter(comment => comment.id.toHexString() !== req.params.commentId)
     task.comments = filteredComments
-    console.log(task.comments, filteredComments)
     await task.save()
     res.send(task)
   } catch (e) {
