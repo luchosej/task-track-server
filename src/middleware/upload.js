@@ -10,7 +10,8 @@ const upload = multer({
       return cb(new Error('Please upload an image'))
 
     cb(undefined, true)
-  } 
+  },
+  
 })
 
 module.exports = upload

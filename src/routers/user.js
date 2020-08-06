@@ -89,7 +89,7 @@ router.get('/users/:id', async (req, res) => {
 // Update user
 router.patch('/users/me', auth, async (req, res) => {
   const updates = Object.keys(req.body)
-  const allowedUpdates = ['name', 'password', 'email', 'age']
+  const allowedUpdates = ['name', 'password', 'email', 'age', 'bio']
   const isValidOperation = updates.every((update) => allowedUpdates.includes(update))
 
   if (!isValidOperation) {
@@ -118,6 +118,7 @@ router.delete('/users/me', auth, async (req, res) => {
 
 // Avatar
 router.post('/users/me/avatar', auth, upload.single('avatar'), async (req, res) => {
+  console.log(req.file)
   const buffer = await sharp(req.file.buffer).resize({ width: 250, height: 250 }).png().toBuffer()
   req.user.avatar = buffer
   await req.user.save()
